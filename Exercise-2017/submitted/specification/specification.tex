@@ -1,0 +1,365 @@
+\documentclass[fleqn, 14pt]{extarticlej}
+\oddsidemargin=-1cm
+\usepackage[dvipdfmx]{graphicx}
+\usepackage{indentfirst}
+\textwidth=18cm
+\textheight=23cm
+\topmargin=0cm
+\headheight=1cm
+\headsep=0cm
+\footskip=1cm
+
+\def\labelenumi{(\theenumi)}
+\def\theenumii{\Alph{enumii}}
+\def\theenumiii{(\alph{enumiii})}
+\usepackage{comment}
+\usepackage{url}
+
+\usepackage{nutils}
+\usepackage{jtygm}
+
+\def\figdir{./figs} % 図のディレクトリ
+\def\figext{pdf}    % 図のファイルの拡張子
+
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% 表題
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{center}
+  {\Large {\bf SlackBotプログラムの仕様書}}
+
+\end{center}
+\begin{flushright}
+  2017年4月20日
+
+  乃村研究室 山本 瑛治
+\end{flushright}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% 概要
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{概要}
+本資料は，平成29年度GNグループB4新人研修課題のSlackBotプログラムの仕様
+についてまとめたものである．
+本プログラムは以下の2つの機能をもち，Slack\cite{Slack}アカウントを所有する利用者を対象としている．
+\begin{enumerate}
+\item ``「○○○」と言って''という文字列を含む発言に反応して ``○○○''と返信する機能
+\item ``○月△日は何の日''もしくは``今日は何の日''という文字列を含む発言に反応して, 
+  該当する日付に関する情報を返信する機能
+\end{enumerate}
+なお，本資料において発言とは
+チャットツールであるSlackの特定のチャンネル上で発言すること，
+または発言そのものを指す．
+また，本資料において発言内容は`` ''で囲って表す．
+
+%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%
+%% %% 対象とする利用者
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% \section{対象とする利用者}
+%% 本プログラムは以下のアカウントを所有する利用者を対象としている．
+%% \begin{enumerate}
+%% \item Slack アカウント
+%% \end{enumerate}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% 機能
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{機能}
+\label{sec:function}
+本プログラムは，``@YBot ''という文字列から始まる発言を受信し，返信を行う．
+また，``@YBot ''以降の内容によってBotの返信の内容が決定される．
+以下に本プログラムがもつ2つの機能について述べる．
+\begin{description}
+\item[(機能1)]\label{item:function1}
+  ``「○○○」と言って''という文字列を含む発言に反応して``○○○''と返信する機能
+  
+  Botの受信した発言が``「○○○」と言って''という文字列を含む場合，
+  ``○○○''と返信する．
+  また``「「○○○」と言って」と言って''のように返信する文字列の解釈が複数存在する場合は，
+  最長の文字列を返信する．
+  つまりこの場合は``「○○○」と言って''と返信する．
+  
+ % 例：``「「こんにちは」と言って」と言って''というリクエストメッセージの場合，
+ % `` 「こんにちは」と言って''という文字列を返信する．
+  
+\item[(機能2)]\label{item:function2}
+  ``○月△日は何の日''もしくは``今日は何の日''という文字列を含む発言に反応して，
+  該当する日付に関する情報を返信する機能
+
+  Botの受信した発言が``○月△日は何の日''もしくは``今日は何の日''
+  という文字列を含む場合，
+  該当する日付に関するWikipediaの記念日・年中行事の情報を返信する．
+  ``○月△日は何の日''という文字列の場合，日付の指定には半角数字を用いる必要がある．
+  
+  
+  またBotの受信した発言が``今日は何の日''という文字列を含む場合，
+  リクエストを受けとった日付に関する情報を返信する．
+  この際の日付はSlackのtime zoneを基に決定される．
+  
+  なおBotが受信した発言内に``○月△日は何の日''もしくは``今日は何の日''
+  という文字列が複数存在する場合，
+  以下の順序で本機能が反応する文字列が判定される．
+  \begin{enumerate}
+  \item{}
+    位置にかかわらず``今日は何の日''という文字列が存在する場合，
+    この文字列に反応し，返信を行う．
+    
+  \item{}
+    最初に存在する文字列に反応し，返信を行う．
+    
+    例：``4月1日は何の日5月2日は何の日''という文字列を受信した場合，
+    4月1日に関する情報を返信する．     
+  \end{enumerate}
+
+  Botの返信内容としては，以下の情報が含まれる．
+  \begin{enumerate}
+  \item{検索対象となる日付}
+  \item{日付の情報の総件数}
+  \item{日付の情報の表示件数}
+    
+    情報の総件数が５件以下の場合は全件表示し，
+    ５件より多い場合は検索結果の上位５件のみ表示する．
+  \item{日付に関する情報}
+    
+    Wikipadiaの日付ページから情報を取得する．
+  \item{リンク}
+    
+    Wikipadiaの日付ページへのリンクが記載される．
+  \end{enumerate}
+
+  例えば``@YBot 4月14日は何の日''という発言に対するBotの返信は，
+  \figref{fig:bot_respond}のようになる.
+
+  \insertfigure[0.65]{fig:bot_respond}{slackbotfig1}{``4月14日は何の日''に対するBotの返信例}{Botrespond}
+
+\end{description}
+
+ 
+なお，上記の(機能1)，(機能2)のどちらにも当てはまらない発言を受信した場合，
+``Hello''という文字列を返信する．
+
+また(機能１)，(機能2)の条件が重複する場合は(機能1)の条件が優先される．
+つまり``「今日は何の日」と言って''という発言の場合は``今日は何の日''という返信を行う．
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% 動作環境
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{動作環境}
+\label{sec:operation_enviroment}
+本プログラムの動作環境を表\ref{tab:operation_enviroment}に示す．
+
+\begin{table}[bt]
+  \begin{center}
+    \caption{動作環境}
+    \label{tab:operation_enviroment}
+    \vspace{0.3cm}
+    \scalebox{1.0}{
+      \begin{tabular}{l|l}
+        \hline
+        \hline 
+        項目& 内容\\
+	\hline
+        OS& Linux Debian GNU/Linux(version 8.1)\\
+        CPU& Intel(R) Core(TM) i5-4670 CPU (3.40GHz)\\
+        メモリ& 8.00GB\\
+        ブラウザ& FireFox バージョン 52.0.2\\
+        ソフトウェア& Ruby バージョン 2.1.5\\
+        & bundler バージョン 1.14.6\\
+        %& sinatra バージョン 1.4.7\\
+        & heroku CLI バージョン 5.7.16\\
+        & Git バージョン 2.1.4\\
+        \hline
+      \end{tabular}
+    }
+  \end{center}
+\end{table}
+
+   
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% 動作確認済み環境
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{動作確認済み環境}
+\label{sec:condirmed_enviroment}
+動作確認済み環境は表\ref{tab:operation_enviroment}の環境である．
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% 使用方法
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{使用方法}
+\label{usage}
+
+
+\subsection{環境構築}
+\label{sec:enviroment_construction}
+\subsubsection{概要}
+本プログラムを実行するために必要な環境構築の手順を以下に示す．
+\begin{enumerate}
+\item SlackアカウントのIncoming WebHooksの設定
+\item SlackアカウントのOutgoing WebHooksの設定
+\item Herokuのアカウント作成と設定
+\item Gemのインストール
+\end{enumerate}
+以後の項では具体的な手順を述べる．
+
+なお本プログラムで利用したAPIは
+Wikipadiaの情報を取得できるMediaWiki API\cite{Media-Wiki}であり，
+このAPIは登録等を行わずに誰でも利用できる．
+
+\subsubsection{SlackアカウントのIncoming WebHooksの設定}
+Slackが提供するIncoming WebHooksの設定を行う．
+Incoming WebHooksとは指定されたURLへPOSTすることで，
+POSTされた情報を利用した発言をすることができる機能である．
+\label{subsub:incoming_webhook}
+\begin{enumerate}
+\item ブラウザを用いて，本プログラム使用者のSlack アカウントにログインする．
+\item ページ左上のチーム名をクリックし，「Apps \& integrations」をクリックする．
+\item ページ右上の「Manage」をクリックする．
+\item \label{item:custom_integration}
+  ページ左側の「Custom Integrations」をクリックする．
+\item 「Incoming WebHooks」をクリックする．
+\item 「Add configuration」をクリックする．
+\item 発言するチャンネルを選択し，「Add Incoming WebHooks integration」をクリックする．
+\item \label{item:get_webhookurl}Webhook URLを取得する． 
+\end{enumerate}
+
+
+\subsubsection{SlackアカウントのOutgoing WebHooksの設定}
+Slackが提供するOutgoing WebHooksの設定を行う．
+Outgoing WebHooksとは指定された発言をすることで，
+指定したURLにその発言の情報をPOSTする機能である．
+\label{subsub:outcoming_webhook}
+\begin{enumerate}
+\item \ref{subsub:incoming_webhook}項の(\ref{item:custom_integration})
+  まで同様の手順を踏む．
+\item 「Outgoing WebHooks」をクリックする。
+\item 「Add configuration」をクリックする
+\item 「Add Outgoing WebHooks integration」をクリックする．
+\item Outgoing WebHooksのページの各設定項目を設定する．
+  設定する項目は表\ref{tab:outcoming_webhook}に示す．
+\item「Save Settings」をクリックする．
+\end{enumerate}
+
+
+\begin{table}[bt]
+  \begin{center}
+    \caption{Outgoing WebHooksの設定項目} 
+    \label{tab:outcoming_webhook}
+    \vspace{0.3cm}
+    \scalebox{1.0}{
+      \begin{tabular}{l|l}
+	    \hline 
+        \hline
+        項目& 内容\\
+	    \hline 
+        Channel& 発言を取得したいchannelを指定\\
+        Trigger Word(s)& @YBot\\
+        URL(s)& https://$<$myapp\_name$>$.herokuapp.com/slack\\
+        &myapp\_nameは\ref{subsub:heroku}項
+        (\ref{item:make_app})にて指定するアプリケーション名\\
+        \hline
+      \end{tabular}
+    }
+  \end{center}
+\end{table}
+
+
+
+\subsubsection{Herokuのアカウント作成と設定}
+\label{subsub:heroku}
+Webアプリケーションを開発するためのプラットフォームである
+Herokuのアカウント作成と使用するための設定を行う．
+\begin{enumerate}
+\item 以下のURLからHerokuにアクセスする．\\
+  \url{https://www.heroku.com/}
+\item ページ右上の「Sign up for free」からアカウント作成画面へアクセスする．
+\item 必要項目を記入し，「Create Free Account」をクリックしアカウントを作成する．
+\item アカウント登録に使用したメールアドレスにHerokuからメールが送られてくるため，
+  メールに記載されているURLにアクセスし．パスワードを設定する．
+\item 登録したアカウントでHerokuにログインし，
+  「Getting Started on Heroku」からRubyを選択する．
+\item ページ下部の「I’m ready to start」をクリックし，
+  「Download the Heroku CLI for…」右側の下矢印から対応OSを選択する．
+\item 「Download the Heroku CLI for…」をクリックして
+  表示されるコマンドを用いてCLI(Command Line Interface)のダウンロードを行う．
+\item 本プログラムが存在するディレクトリに移動する．
+  ターミナルで以下のコマンドを実行し，CLIがインストールされたことを確認する．
+\begin{verbatim}
+$ heroku version
+\end{verbatim}
+\item 以下のコマンドを実行し，Herokuにログインする．
+\begin{verbatim}
+$ heroku login
+\end{verbatim}
+\item \label{item:make_app}
+  Heroku上にアプリケーションを生成するために以下のコマンドを実行する．
+\begin{verbatim}
+heroku create <myapp_name>
+\end{verbatim}
+なお，myapp\_nameは作成するアプリケーションの名前である．
+小文字，数字，およびハイフンのみ使用できる．
+\item 以下のコマンドで生成したアプリケーションがremoteに登録されていることを確認する．
+\begin{verbatim}
+$ git remote -v
+heroku	https://git.heroku.com/<myapp_name>.git (fetch)
+heroku	https://git.heroku.com/<myapp_name>.git (push)
+\end{verbatim}
+\item 以下のコマンドを実行し，
+  Herokuの環境変数に\ref{subsub:incoming_webhook}項(\ref{item:get_webhookurl})
+  で取得したWebhook URLを設定する．
+\begin{verbatim}
+$ heroku config:set INCOMING_WEBHOOK_URL="https://*****"
+\end{verbatim}
+\end{enumerate}
+
+
+\subsubsection{Gemのインストール}
+本プログラム内で使用するGemをbundlerを用いてインストールする．
+Gemとは，Rubyで使用することができるライブラリである．
+\begin{enumerate}
+\item 以下のコマンドを実行し，Gemをvendor/bundle以下にインストールする．
+\begin{verbatim}
+$ bundle install --path vendor/bundle
+\end{verbatim}
+\end{enumerate}
+
+\subsection{実行手順}
+\label{sub:process}
+本プログラムを実行するための手順を以下に示す．
+本プログラムはHerokuにデプロイすることにより実行することができる．
+\begin{enumerate}
+\item 以下のコマンドを実行する．
+\begin{verbatim}
+$ git push heroku master
+\end{verbatim}
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% エラー処理と保証しない動作
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{エラー処理と保証しない動作}
+\label{sec:error_handling}
+\subsection{エラー処理}
+　本プログラムのエラー処理を以下に示す．
+\begin{enumerate}
+\item %%不正な日付処理はここに書く？
+  (機能2)において不正な日付に関する情報を取得しようとした場合は，
+  ``Hello''という文字列を返信する．
+
+\end{enumerate}
+\subsection{保証しない動作}
+　本プログラムの保証しない動作を以下に示す．
+\begin{enumerate}
+  %\item SlackのOutgoing WebHooks以外からPOSTリクエストを受け取った場合の動作
+\item Slack以外のPOSTリクエストをブロックする動作
+\item 表\ref{tab:operation_enviroment}に示す動作環境以外でプログラムを実行
+\item Wikipediaの該当日付のページの記念日・年中行事の項目が削除された場合の動作
+\end{enumerate}
+
+\bibliographystyle{ipsjunsrt}
+\bibliography{mybibdata}
+
+
+
+\end{document}
